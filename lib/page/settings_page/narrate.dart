@@ -1,6 +1,8 @@
 import 'package:anx_reader/config/shared_preference_provider.dart';
 import 'package:anx_reader/l10n/generated/L10n.dart';
+import 'package:anx_reader/page/settings_page/narrate_local_models.dart';
 import 'package:anx_reader/providers/tts_providers.dart';
+import 'package:anx_reader/service/tts/local_tts.dart';
 import 'package:anx_reader/service/tts/models/tts_voice.dart';
 import 'package:anx_reader/service/tts/online_tts.dart';
 import 'package:anx_reader/service/tts/system_tts.dart';
@@ -68,6 +70,12 @@ class _NarrateSettingsState extends ConsumerState<NarrateSettings>
           await tts.speak(content: text);
         }
       } else if (tts is SystemTts) {
+        if (voiceShortName != null) {
+          await tts.speakWithVoice(text, voiceShortName);
+        } else {
+          await tts.speak(content: text);
+        }
+      } else if (tts is LocalTts) {
         if (voiceShortName != null) {
           await tts.speakWithVoice(text, voiceShortName);
         } else {
@@ -362,7 +370,21 @@ class _NarrateSettingsState extends ConsumerState<NarrateSettings>
           title: Text(L10n.of(context).ttsType),
           tiles: [
             CustomSettingsTile(child: _buildServiceSelection(ttsServiceId)),
-            if (ttsServiceId != 'system')
+            if (ttsServiceId == 'local')
+              CustomSettingsTile(
+                child: LocalTtsModelsSection(
+                  onSelectionChanged: () {
+                    setState(() {
+                      _showVoiceList = false;
+                      selectedVoiceModel = tts_svc
+                          .getTtsService('local')
+                          .provider
+                          .getSelectedVoice();
+                    });
+                  },
+                ),
+              )
+            else if (ttsServiceId != 'system')
               CustomSettingsTile(child: _buildConfigSection(ttsServiceId)),
           ],
         ),
@@ -435,6 +457,9 @@ class _NarrateSettingsState extends ConsumerState<NarrateSettings>
           DropdownMenuItem(
               value: 'system',
               child: Text(L10n.of(context).settingsNarrateSystemTts)),
+          DropdownMenuItem(
+              value: 'local',
+              child: Text(L10n.of(context).settingsNarrateLocalTts)),
           DropdownMenuItem(
               value: 'aliyun',
               child: Text(L10n.of(context).settingsNarrateAliyunTts)),

@@ -360,6 +360,7 @@
   "settingsAiProviderEnabled": "Enabled",
   "settingsAiProviderDisabled": "Disabled",
   "settingsAiProviderNoValidKeys": "No valid API keys configured",
+  "settingsAiProviderLocalNoKeyHint": "Local server — API key is optional, you can use it directly",
   "settingsAiProviderCurrentProvider": "Current: {name}",
   "settingsAiProviderReasoningEffort": "Reasoning Effort",
   "settingsAiProviderReasoningEffortHelp": "Auto is the default and will not send this parameter. Some models or providers may ignore this parameter or reject the request if they do not support reasoning_effort.",
@@ -841,6 +842,32 @@
   "settingsNarrateAliyunTts": "Aliyun",
   "settingsNarrateAzureTts": "Microsoft Azure",
   "settingsNarrateOpenAiTts": "OpenAI",
+  "settingsNarrateLocalTts": "Local (Offline)",
+  "settingsNarrateLocalTtsTip": "Runs entirely offline on your device. Download a voice model below; no network is needed while reading.",
+  "settingsNarrateLocalTtsDownload": "Download",
+  "settingsNarrateLocalTtsCancel": "Cancel",
+  "settingsNarrateLocalTtsDelete": "Delete",
+  "settingsNarrateLocalTtsUse": "Use",
+  "settingsNarrateLocalTtsInUse": "In use",
+  "settingsNarrateLocalTtsRecommended": "Recommended",
+  "settingsNarrateLocalTtsDownloading": "Downloading… {progress}%",
+  "@settingsNarrateLocalTtsDownloading": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsNarrateLocalTtsExtracting": "Extracting…",
+  "settingsNarrateLocalTtsFailed": "Retry",
+  "settingsNarrateLocalTtsVoicesLabel": "Voices: {count}",
+  "@settingsNarrateLocalTtsVoicesLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settingsNarrateSystemTts": "System TTS",
   "settingsNarrateTtsVoiceModels": "TTS Voice Models",
   "settingsNarrateGetVoiceList": "Get Voice List",

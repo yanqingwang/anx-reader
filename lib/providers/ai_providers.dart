@@ -19,13 +19,49 @@ class AiProviders extends _$AiProviders {
 
     // Convert from JSON
     try {
-      return rawProviders
+      final providers = rawProviders
           .map((json) => AiProvider.fromJson(json as Map<String, dynamic>))
           .toList();
+      return _appendMissingBuiltins(providers);
     } catch (e) {
       // If parsing fails, reinitialize
       return _initializeDefaultProviders();
     }
+  }
+
+  /// Append built-in presets that are missing from the saved list (e.g. new
+  /// local providers added in an upgrade), so existing users see them too.
+  List<AiProvider> _appendMissingBuiltins(List<AiProvider> providers) {
+    final knownIds = providers.map((p) => p.id).toSet();
+    final missing = buildDefaultAiServices()
+        .where((option) => !knownIds.contains(option.identifier))
+        .map((option) {
+      final now = DateTime.now();
+      return AiProvider(
+        id: option.identifier,
+        title: option.title,
+        logoAsset: option.logo,
+        url: option.defaultUrl,
+        protocol: switch (option.identifier) {
+          'claude' => AiProtocol.claude,
+          'gemini' => AiProtocol.gemini,
+          _ => AiProtocol.openai,
+        },
+        enabled: true,
+        isBuiltin: true,
+        apiKeys: const [],
+        model: option.defaultModel,
+        keyIndex: 0,
+        createdAt: now,
+        updatedAt: now,
+      );
+    }).toList();
+
+    if (missing.isEmpty) return providers;
+
+    final merged = [...providers, ...missing];
+    Prefs().saveAiProviders(merged);
+    return merged;
   }
 
   /// Initialize default providers from old configuration

@@ -1,4 +1,5 @@
 import 'package:anx_reader/enums/ai_reasoning_effort.dart';
+import 'package:anx_reader/models/ai_provider.dart' show isLocalAiUrl;
 import 'dart:convert';
 
 import 'package:langchain_anthropic/langchain_anthropic.dart';
@@ -105,7 +106,9 @@ class LangchainAiConfig {
     if (trimmedUrl.isEmpty) {
       throw ArgumentError('AI provider URL is required');
     }
-    if (trimmedKey.isEmpty) {
+    // Local inference servers (Ollama / LM Studio / llama.cpp / ...) work
+    // without an API key — only enforce it for remote endpoints.
+    if (trimmedKey.isEmpty && !isLocalAiUrl(trimmedUrl)) {
       throw ArgumentError('AI provider API key is required');
     }
     if (trimmedModel.isEmpty) {

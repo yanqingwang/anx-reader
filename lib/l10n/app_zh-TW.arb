@@ -792,6 +792,32 @@
   "settingsNarrateAliyunTts": "阿里雲",
   "settingsNarrateAzureTts": "微軟 Azure",
   "settingsNarrateOpenAiTts": "OpenAI",
+  "settingsNarrateLocalTts": "本機（離線）",
+  "settingsNarrateLocalTtsTip": "語音完全在裝置本機合成，朗讀時無需連網。請先在下方下載語音模型。",
+  "settingsNarrateLocalTtsDownload": "下載",
+  "settingsNarrateLocalTtsCancel": "取消",
+  "settingsNarrateLocalTtsDelete": "刪除",
+  "settingsNarrateLocalTtsUse": "使用",
+  "settingsNarrateLocalTtsInUse": "使用中",
+  "settingsNarrateLocalTtsRecommended": "推薦",
+  "settingsNarrateLocalTtsDownloading": "下載中… {progress}%",
+  "@settingsNarrateLocalTtsDownloading": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsNarrateLocalTtsExtracting": "解壓中…",
+  "settingsNarrateLocalTtsFailed": "重試",
+  "settingsNarrateLocalTtsVoicesLabel": "音色：{count}",
+  "@settingsNarrateLocalTtsVoicesLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settingsNarrateSystemTts": "系統 TTS",
   "settingsNarrateTtsVoiceModels": "TTS 語音模型",
   "settingsNarrateGetVoiceList": "獲取語音列表",
@@ -887,6 +913,7 @@
   "settingsAiProviderEnabled": "已啟用",
   "settingsAiProviderDisabled": "已停用",
   "settingsAiProviderNoValidKeys": "未設定有效的 API Key",
+  "settingsAiProviderLocalNoKeyHint": "本機服務，無需 API Key，可直接使用",
   "settingsAiProviderCurrentProvider": "目前：{name}",
   "settingsAiChatDisplay": "AI 對話顯示",
   "settingsAiChatDisplayMode": "顯示模式",

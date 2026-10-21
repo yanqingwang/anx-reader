@@ -1,14 +1,17 @@
 import 'package:anx_reader/l10n/generated/L10n.dart';
 import 'package:anx_reader/service/tts/aliyun/aliyun_tts_backend.dart';
 import 'package:anx_reader/service/tts/azure_tts_backend.dart';
+import 'package:anx_reader/service/tts/local_tts_provider.dart';
 import 'package:anx_reader/service/tts/openai_tts_backend.dart';
 import 'package:anx_reader/service/tts/tts_service_provider.dart';
 import 'package:flutter/material.dart';
 
 /// TTS service enumeration.
-/// Defines available TTS services (system TTS and online TTS services).
+/// Defines available TTS services (system TTS, local offline TTS and online
+/// TTS services).
 enum TtsService {
   system,
+  local,
   aliyun,
   azure,
   openai;
@@ -19,6 +22,8 @@ enum TtsService {
     switch (this) {
       case TtsService.system:
         return SystemTtsProvider();
+      case TtsService.local:
+        return LocalTtsProvider();
       case TtsService.aliyun:
         return AliyunTtsProvider();
       case TtsService.azure:
@@ -32,7 +37,7 @@ enum TtsService {
   String getLabel(BuildContext context) => provider.getLabel(context);
 
   /// Check if the service is an online TTS provider.
-  bool get isOnline => this != TtsService.system;
+  bool get isOnline => this != TtsService.system && this != TtsService.local;
 }
 
 /// Get TTS service from service ID string.

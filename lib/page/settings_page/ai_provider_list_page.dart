@@ -46,7 +46,7 @@ class AiProviderListPage extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (!hasValidKey)
+                if (!hasValidKey && !provider.isLocal)
                   Text(
                     l10n.settingsAiProviderNoValidKeys,
                     style: TextTheme.of(context).bodySmall?.copyWith(

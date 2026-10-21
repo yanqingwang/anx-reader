@@ -77,8 +77,16 @@ class LangchainAiRegistry {
   }
 
   BaseChatModel _buildOpenAi(LangchainAiConfig config) {
+    // Local inference servers ignore the Authorization header, but some
+    // OpenAI client impls refuse to build without a non-empty key — send a
+    // placeholder for local endpoints, keep null for keyless remote proxies.
+    final apiKey = config.apiKey.isNotEmpty
+        ? config.apiKey
+        : (config.baseUrl != null && isLocalAiUrl(config.baseUrl!)
+            ? 'local'
+            : null);
     return ChatOpenAI(
-      apiKey: config.apiKey.isEmpty ? null : config.apiKey,
+      apiKey: apiKey,
       baseUrl: config.baseUrl ?? 'https://api.openai.com/v1',
       headers: config.headers.isEmpty ? null : config.headers,
       defaultOptions: config.toOpenAIOptions(),

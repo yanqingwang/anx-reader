@@ -201,14 +201,18 @@ class _AiProviderDetailPageState extends ConsumerState<AiProviderDetailPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Icon(
-                        Icons.key_off_outlined,
+                        isLocalAiUrl(_urlController.text)
+                            ? Icons.computer_outlined
+                            : Icons.key_off_outlined,
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
                             .withAlpha(120),
                       ),
                       Text(
-                        l10n.settingsAiProviderNoValidKeys,
+                        isLocalAiUrl(_urlController.text)
+                            ? l10n.settingsAiProviderLocalNoKeyHint
+                            : l10n.settingsAiProviderNoValidKeys,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -528,7 +532,8 @@ class _AiProviderDetailPageState extends ConsumerState<AiProviderDetailPage> {
   Future<void> _fetchModels() async {
     final l10n = L10n.of(context);
     final enabledKeys = _apiKeys.where((k) => k.enabled && k.key.isNotEmpty);
-    if (enabledKeys.isEmpty || _urlController.text.isEmpty) {
+    final isLocal = isLocalAiUrl(_urlController.text);
+    if ((enabledKeys.isEmpty && !isLocal) || _urlController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.settingsAiProviderNoValidKeys)),
       );
@@ -540,7 +545,7 @@ class _AiProviderDetailPageState extends ConsumerState<AiProviderDetailPage> {
     try {
       final models = await fetchAiModels(
         url: _urlController.text.trim(),
-        apiKey: enabledKeys.first.key,
+        apiKey: enabledKeys.isEmpty ? '' : enabledKeys.first.key,
       );
 
       if (!mounted) return;
@@ -647,9 +652,10 @@ class _AiProviderDetailPageState extends ConsumerState<AiProviderDetailPage> {
     final l10n = L10n.of(context);
 
     final enabledKeys = _apiKeys.where((k) => k.enabled && k.key.trim().isNotEmpty);
+    final isLocal = isLocalAiUrl(_urlController.text.trim());
     if (_urlController.text.trim().isEmpty ||
         _modelController.text.trim().isEmpty ||
-        enabledKeys.isEmpty) {
+        (enabledKeys.isEmpty && !isLocal)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.settingsAiProviderNoValidKeys)),
       );

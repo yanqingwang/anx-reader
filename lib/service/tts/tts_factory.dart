@@ -1,5 +1,6 @@
 import 'package:anx_reader/config/shared_preference_provider.dart';
 import 'package:anx_reader/service/tts/base_tts.dart';
+import 'package:anx_reader/service/tts/local_tts.dart';
 import 'package:anx_reader/service/tts/online_tts.dart';
 import 'package:anx_reader/service/tts/system_tts.dart';
 import 'package:anx_reader/service/tts/tts_service.dart';
@@ -23,7 +24,13 @@ class TtsFactory {
 
   BaseTts createTts() {
     TtsService service = getTtsService(Prefs().ttsService);
-    return service == TtsService.system ? SystemTts() : OnlineTts();
+    if (service == TtsService.system) {
+      return SystemTts();
+    }
+    if (service == TtsService.local) {
+      return LocalTts();
+    }
+    return OnlineTts();
   }
 
   Future<void> switchTtsType(String serviceId) async {

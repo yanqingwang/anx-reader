@@ -4,15 +4,16 @@ class AiServiceOption {
   const AiServiceOption({
     required this.identifier,
     required this.title,
-    required this.logo,
     required this.defaultUrl,
     required this.defaultApiKey,
     required this.defaultModel,
+    this.logo,
   });
 
   final String identifier;
   final String title;
-  final String logo;
+  // Asset path for built-in providers; null renders a letter avatar.
+  final String? logo;
   final String defaultUrl;
   final String defaultApiKey;
   final String defaultModel;
@@ -77,6 +78,31 @@ List<AiServiceOption> buildDefaultAiServices() {
       defaultUrl: 'https://router.requesty.ai/v1/chat/completions',
       defaultApiKey: 'YOUR_API_KEY',
       defaultModel: 'openai/gpt-4o-mini',
+    ),
+    // Local inference servers — OpenAI-compatible endpoints, no API key needed.
+    AiServiceOption(
+      identifier: 'ollama',
+      title: 'Ollama (本地)',
+      defaultUrl: 'http://127.0.0.1:11434/v1',
+      defaultApiKey: '',
+      defaultModel: 'qwen3:4b',
+    ),
+    AiServiceOption(
+      identifier: 'lmstudio',
+      title: 'LM Studio (本地)',
+      defaultUrl: 'http://127.0.0.1:1234/v1',
+      defaultApiKey: '',
+      // LM Studio has no stable default model id — pick one after loading
+      // a model in LM Studio, or use "获取模型列表".
+      defaultModel: '',
+    ),
+    AiServiceOption(
+      identifier: 'llamacpp',
+      title: 'llama.cpp (本地)',
+      defaultUrl: 'http://127.0.0.1:8080/v1',
+      defaultApiKey: '',
+      // Depends on the model loaded by `llama-server`; fetch via /v1/models.
+      defaultModel: '',
     ),
   ];
 }

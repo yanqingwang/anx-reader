@@ -14,12 +14,17 @@ Future<List<String>> fetchAiModels({
   final modelsUrl =
       baseUrl.endsWith('/') ? '${baseUrl}models' : '$baseUrl/models';
 
+  // Local inference servers (Ollama / LM Studio / llama.cpp) don't need an
+  // API key — only send the Authorization header when one is provided.
+  final headers = <String, String>{'Content-Type': 'application/json'};
+  final trimmedKey = apiKey.trim();
+  if (trimmedKey.isNotEmpty) {
+    headers['Authorization'] = 'Bearer $trimmedKey';
+  }
+
   final response = await http.get(
     Uri.parse(modelsUrl),
-    headers: {
-      'Authorization': 'Bearer $apiKey',
-      'Content-Type': 'application/json',
-    },
+    headers: headers,
   ).timeout(timeout);
 
   if (response.statusCode != 200) {

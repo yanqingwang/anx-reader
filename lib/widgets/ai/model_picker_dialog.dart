@@ -43,8 +43,8 @@ class _ModelPickerDialogState extends State<_ModelPickerDialog> {
 
   bool get _canFetch =>
       widget.provider.protocol == AiProtocol.openai &&
-      widget.provider.hasValidKey &&
-      widget.provider.url.isNotEmpty;
+      widget.provider.url.isNotEmpty &&
+      (widget.provider.hasValidKey || widget.provider.isLocal);
 
   @override
   void initState() {

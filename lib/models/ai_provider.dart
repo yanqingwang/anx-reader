@@ -21,6 +21,18 @@ enum AiProtocol {
   }
 }
 
+/// Whether the URL points to a local inference server (loopback or mDNS
+/// `.local` host) that typically does not require an API key.
+bool isLocalAiUrl(String url) {
+  final uri = Uri.tryParse(url.trim());
+  if (uri == null || uri.host.isEmpty) return false;
+  final host = uri.host.toLowerCase();
+  return host == 'localhost' ||
+      host == '127.0.0.1' ||
+      host == '::1' ||
+      host.endsWith('.local');
+}
+
 @freezed
 abstract class AiProvider with _$AiProvider {
   const AiProvider._();
@@ -75,6 +87,11 @@ abstract class AiProvider with _$AiProvider {
   bool get hasValidKey {
     return apiKeys.any((k) => k.enabled && k.key.isNotEmpty);
   }
+
+  /// Whether this provider points to a local inference server
+  /// (Ollama / LM Studio / llama.cpp / any loopback OpenAI-compatible
+  /// endpoint). Local servers work without an API key.
+  bool get isLocal => isLocalAiUrl(url);
 }
 
 @freezed

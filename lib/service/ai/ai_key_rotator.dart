@@ -8,7 +8,9 @@ class AiKeyRotator {
     final enabledKeys = provider.apiKeys.where((k) => k.enabled).toList();
 
     if (enabledKeys.isEmpty) {
-      return null;
+      // Local inference servers (Ollama, LM Studio, llama.cpp, ...) work
+      // without an API key — return an empty sentinel instead of failing.
+      return provider.isLocal ? '' : null;
     }
 
     // Use modulo to wrap around the key index
@@ -18,7 +20,9 @@ class AiKeyRotator {
 
   /// Check if the provider has any valid (enabled and non-empty) API keys
   static bool hasValidKey(AiProvider provider) {
-    return provider.apiKeys.any((k) => k.enabled && k.key.trim().isNotEmpty);
+    // Local servers are usable without any key.
+    return provider.isLocal ||
+        provider.apiKeys.any((k) => k.enabled && k.key.trim().isNotEmpty);
   }
 
   /// Get all enabled keys for this provider

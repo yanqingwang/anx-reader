@@ -49,5 +49,6 @@ pub struct TtsModelSpec {
     pub dict_dir: Option<String>,
     pub tokens_path: String,
     pub lexicon_path: Option<String>,
+    pub data_dir: Option<String>,
     pub num_threads: u32,
 }

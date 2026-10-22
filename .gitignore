@@ -75,3 +75,4 @@ google_service_account.json
 rust_core/target/
 rust_core/native/
 rust_core/Cargo.lock
+rust_core/test_data/models/   # 大模型文件（78MB+），cargo test tts:: 时需手动下载

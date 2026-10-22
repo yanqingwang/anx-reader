@@ -1,26 +1,19 @@
 //! sherpa_onnx 本地离线 TTS Rust 封装。
 //!
-//! **重要：阶段 2 先做骨架和生命周期测试，暂不真调 sherpa_onnx C API。**
-//! 等 flutter_rust_bridge 脚手架在有 Flutter SDK 的机器上通了之后，
-//! 再把 sherpa_onnx-ffi crate 接进来；如果 crates.io 的 ffi crate 在 iOS/Android
-//! 质量不够，就手动写 extern "C" 调 Dart pub 包里已经打好的静态库。
-//!
-//! 这里先定义 handle 协议 + 假实现（返回 fixture 数据），让 Dart 侧可以先接上
-//! factory 而不需要等 iOS/Android 链接问题解决。
+//! 使用 crates.io 的 `sherpa-onnx = "1.13.8"` safe wrapper。
+//! 生命周期：init(handle) → generate → free
+//! OfflineTts 内部持有 ONNX runtime session，构造重，不可 Clone。本模块用
+//! Box<OfflineTts> 存入 Mutex<HashMap<u64, Box<OfflineTts>>>，generate 通过
+//! &OfflineTts 借用共享。
 
 use crate::models::{TtsModelSpec, WavData};
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-// ---- handle 池 ---------------------------------------------------------
+static ENGINE_POOL: Mutex<Option<HashMap<u64, Box<sherpa_onnx::OfflineTts>>>> = Mutex::new(None);
 
-struct EngineSlot {
-    spec: TtsModelSpec,
-}
-
-static ENGINE_POOL: Mutex<Option<HashMap<u64, EngineSlot>>> = Mutex::new(None);
-
-fn ensure_pool() -> std::sync::MutexGuard<'static, Option<HashMap<u64, EngineSlot>>> {
+fn ensure_pool(
+) -> std::sync::MutexGuard<'static, Option<HashMap<u64, Box<sherpa_onnx::OfflineTts>>>> {
     let mut guard = ENGINE_POOL.lock().unwrap();
     if guard.is_none() {
         *guard = Some(HashMap::new());
@@ -28,60 +21,153 @@ fn ensure_pool() -> std::sync::MutexGuard<'static, Option<HashMap<u64, EngineSlo
     guard
 }
 
-/// 初始化本地 TTS 引擎（占位实现：只存 spec，不真调 sherpa_onnx）
-///
-/// 阶段 2 完成后这里会：
-/// 1. 加载 sherpa_onnx 的 OnlineTtsConfig（model + lexicon + tokens + dict + rule_fsts）
-/// 2. 创建 OfflineTts 实例并塞进 pool
 pub fn tts_engine_init(spec: TtsModelSpec) -> Result<u64, String> {
     let mut pool = ensure_pool();
     let map = pool.as_mut().unwrap();
-    // 用 model_dir + 当前 map.len() 做 hash 基，保证每次新 init 都生成不同 handle
-    let seed = (spec.model_dir.len() as u64).wrapping_mul(0x9E3779B1).wrapping_add(map.len() as u64);
-    let handle = simple_hash(&spec.model_dir, seed);
-    // 如果碰撞了，递归重试（极小概率，但安全起见）
+    let handle = compute_handle(&spec.model_dir);
     if map.contains_key(&handle) {
-        return Err(format!("handle collision for {}", spec.model_dir));
+        return Ok(handle); // 已存在
     }
-    map.insert(handle, EngineSlot { spec });
+
+    let config = build_config(&spec)?;
+    let tts = sherpa_onnx::OfflineTts::create(&config)
+        .ok_or_else(|| "sherpa_onnx OfflineTts::create returned None".to_string())?;
+
+    map.insert(handle, Box::new(tts));
     Ok(handle)
 }
 
-fn simple_hash(s: &str, salt: u64) -> u64 {
+fn compute_handle(s: &str) -> u64 {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
     let mut h = DefaultHasher::new();
-    (salt, s).hash(&mut h);
+    s.hash(&mut h);
     h.finish()
+}
+
+fn build_config(spec: &TtsModelSpec) -> Result<sherpa_onnx::OfflineTtsConfig, String> {
+    // 找到 .onnx 文件（Piper 模型名是 en_US-lessac-low.onnx，不一定叫 model.onnx）
+    let onnx_path = std::fs::read_dir(&spec.model_dir)
+        .map_err(|e| format!("model_dir not found {}: {}", spec.model_dir, e))?
+        .flatten()
+        .map(|e| e.path())
+        .find(|p| {
+            p.extension()
+                .map(|e| e == "onnx")
+                .unwrap_or(false)
+        })
+        .ok_or_else(|| format!("no .onnx in {}", spec.model_dir))?;
+
+    let tokens = resolve(&spec.tokens_path, Some("tokens.txt"), &spec.model_dir)?;
+    let data_dir = spec.data_dir.clone().or_else(|| {
+        // Piper 模型用 espeak-ng-data
+        let espeak = format!("{}/espeak-ng-data", spec.model_dir);
+        if std::path::Path::new(&espeak).exists() {
+            Some(espeak)
+        } else {
+            None
+        }
+    });
+    let dict_dir = spec.dict_dir.clone();
+    let lexicon = spec.lexicon_path.clone();
+
+    let vits = sherpa_onnx::OfflineTtsVitsModelConfig {
+        model: Some(onnx_path.to_string_lossy().to_string()),
+        tokens: Some(tokens),
+        data_dir,
+        dict_dir,
+        lexicon,
+        ..Default::default()
+    };
+
+    let model_config = sherpa_onnx::OfflineTtsModelConfig {
+        vits,
+        num_threads: spec.num_threads.max(1) as i32,
+        debug: false,
+        provider: None,
+        ..Default::default()
+    };
+
+    Ok(sherpa_onnx::OfflineTtsConfig {
+        model: model_config,
+        rule_fsts: None,
+        rule_fars: None,
+        max_num_sentences: 2,
+        silence_scale: 0.2,
+    })
+}
+
+fn resolve(
+    explicit: &str,
+    fallback_name: Option<&str>,
+    model_dir: &str,
+) -> Result<String, String> {
+    if std::path::Path::new(explicit).exists() {
+        return Ok(explicit.to_string());
+    }
+    if let Some(name) = fallback_name {
+        let candidate = format!("{}/{}", model_dir, name);
+        if std::path::Path::new(&candidate).exists() {
+            return Ok(candidate);
+        }
+    }
+    Err(format!(
+        "file not found: explicit={:?} fallback={:?} dir={}",
+        explicit, fallback_name, model_dir
+    ))
 }
 
 pub fn tts_engine_free(handle: u64) {
     let mut pool = ensure_pool();
     if let Some(map) = pool.as_mut() {
-        map.remove(&handle);
+        map.remove(&handle); // Box<OfflineTts> drop → 内部 raw ptr 自动清理
     }
 }
 
 pub fn tts_generate(
     handle: u64,
-    _text: &str,
-    _speaker_id: u32,
-    _speed: f32,
+    text: &str,
+    speaker_id: u32,
+    speed: f32,
 ) -> Result<WavData, String> {
-    let pool = ensure_pool();
-    let exists = pool.as_ref().map(|m| m.contains_key(&handle)).unwrap_or(false);
-    if !exists {
-        return Err(format!("handle {} not initialized", handle));
-    }
-    // 占位：返回一段 1ms 的静音 16kHz PCM，让 Dart 侧能完整走通 WavData → 播放 的协议
+    let audio = {
+        let mut pool = ensure_pool();
+        let map = pool.as_mut().unwrap();
+        let tts = map
+            .get(&handle)
+            .ok_or_else(|| format!("handle {} not initialized", handle))?;
+        let gen_config = sherpa_onnx::GenerationConfig {
+            speed,
+            sid: speaker_id as i32,
+            ..Default::default()
+        };
+        // 第三个参数是流式回调（每产生一批 chunk 时调用），我们不需要流式播放，
+        // 传一个始终返回 true 的空闭包让 sherpa-onnx 一次性完整生成。
+        (&**tts)
+            .generate_with_config(text, &gen_config, Some(|_: &[f32], _: f32| true))
+            .ok_or_else(|| format!("generate returned None for text: {}", text))?
+    };
+
+    let samples = audio.samples();
+    let sample_rate = audio.sample_rate();
+    let duration_ms = if sample_rate > 0 && !samples.is_empty() {
+        (samples.len() as u32 * 1000 / sample_rate as u32)
+    } else {
+        0
+    };
+
+    let pcm: Vec<i16> = samples
+        .iter()
+        .map(|s| (s.clamp(-1.0, 1.0) * 32767.0) as i16)
+        .collect();
+
     Ok(WavData {
-        sample_rate: 16_000,
-        pcm_i16_le: vec![0i16; 16], // 1ms
-        duration_ms: 1,
+        sample_rate: sample_rate as u32,
+        pcm_i16_le: pcm,
+        duration_ms,
     })
 }
 
-/// 清空所有引擎（测试/退出时用）
 pub fn tts_pool_clear() {
     let mut pool = ensure_pool();
     if let Some(map) = pool.as_mut() {
@@ -93,40 +179,63 @@ pub fn tts_pool_clear() {
 mod tests {
     use super::*;
 
-    fn default_spec() -> TtsModelSpec {
+    fn spec() -> TtsModelSpec {
+        let dir = format!(
+            "{}/test_data/models/vits-piper-en_US-lessac-low",
+            env!("CARGO_MANIFEST_DIR")
+        );
         TtsModelSpec {
-            model_dir: "/tmp/fake-model".to_string(),
+            model_dir: dir,
             dict_dir: None,
-            tokens_path: "/tmp/fake-model/tokens.txt".to_string(),
+            tokens_path: format!(
+                "{}/test_data/models/vits-piper-en_US-lessac-low/tokens.txt",
+                env!("CARGO_MANIFEST_DIR")
+            ),
             lexicon_path: None,
+            data_dir: None,
             num_threads: 2,
         }
     }
 
     #[test]
-    fn lifecycle_init_generate_free() {
+    fn init_generate_free_real_piper() {
         tts_pool_clear();
-        let h = tts_engine_init(default_spec()).unwrap();
-        let wav = tts_generate(h, "你好世界", 0, 1.0).unwrap();
-        assert_eq!(wav.sample_rate, 16_000);
+        let h = tts_engine_init(spec()).expect("init");
+        let wav = tts_generate(h, "Hello world. Rust + sherpa_onnx works.", 0, 1.0)
+            .expect("generate");
+        eprintln!(
+            "  sample_rate={}, frames={}, duration_ms={}, max_amp={}",
+            wav.sample_rate,
+            wav.pcm_i16_le.len(),
+            wav.duration_ms,
+            wav.pcm_i16_le.iter().max().copied().unwrap_or(0)
+        );
+
+        assert!(wav.sample_rate > 0);
         assert!(!wav.pcm_i16_le.is_empty());
+        assert!(
+            wav.duration_ms > 50,
+            "duration={} should be real speech",
+            wav.duration_ms
+        );
+        // 振幅不应该全 0（全 0 = 静音 = 没真生成）
+        let max_amp = wav.pcm_i16_le.iter().map(|x| x.unsigned_abs()).max().unwrap_or(0);
+        assert!(max_amp > 500, "max amplitude too low: {}", max_amp);
+
         tts_engine_free(h);
-        // 再次生成应失败
-        assert!(tts_generate(h, "again", 0, 1.0).is_err());
     }
 
     #[test]
-    fn init_twice_gives_different_handles() {
+    fn bad_path_init_fails() {
         tts_pool_clear();
-        let a = tts_engine_init(TtsModelSpec {
-            model_dir: "/tmp/a".into(),
-            ..default_spec()
-        }).unwrap();
-        let b = tts_engine_init(TtsModelSpec {
-            model_dir: "/tmp/b".into(),
-            ..default_spec()
-        }).unwrap();
-        assert_ne!(a, b);
+        let mut s = spec();
+        s.model_dir = "/tmp/nonexistent".to_string();
+        assert!(tts_engine_init(s).is_err());
+    }
+
+    #[test]
+    fn unknown_handle_is_err() {
         tts_pool_clear();
+        assert!(tts_generate(0xDEADBEEF, "x", 0, 1.0).is_err());
     }
 }

@@ -96,8 +96,10 @@ void main() {
       expect(files.tokensTxt, '${modelDir.path}/tokens.txt');
       expect(files.lexicon, '${modelDir.path}/lexicon.txt');
       expect(files.dictDir, '${modelDir.path}/dict');
-      expect(files.ruleFsts,
-          '${modelDir.path}/date.fst,${modelDir.path}/number.fst');
+      expect(files!.ruleFsts, unorderedEquals([
+        '${modelDir.path}/date.fst',
+        '${modelDir.path}/number.fst',
+      ]));
     });
 
     test('descends into a single nested directory', () {

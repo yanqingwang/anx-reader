@@ -116,7 +116,10 @@ String localTtsVoiceId(String modelId, int speakerId) =>
     '$modelId#$speakerId';
 
 ({String modelId, int speakerId})? parseLocalTtsVoiceId(String voiceId) {
-  final index = voiceId.indexOf('#');
+  // Use lastIndexOf so model ids that themselves contain '#' are handled
+  // correctly (voiceId format: <modelId>#<speakerId>, speakerId is always
+  // the last segment).
+  final index = voiceId.lastIndexOf('#');
   if (index <= 0 || index == voiceId.length - 1) return null;
   final speakerId = int.tryParse(voiceId.substring(index + 1));
   if (speakerId == null || speakerId < 0) return null;

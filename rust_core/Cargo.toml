@@ -22,7 +22,7 @@ walkdir = "2"
 serde = { version = "1", features = ["derive"] }
 
 # flutter_rust_bridge v2 宏（Rust 侧）—— 2026-10 crates.io 最新稳定版是 2.13.0
-flutter_rust_bridge = "2.13.0"
+flutter_rust_bridge = "=2.13.0"
 
 # 日志
 log = "0.4"

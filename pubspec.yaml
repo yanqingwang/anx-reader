@@ -29,7 +29,7 @@ dependencies:
   archive: ^3.6.1
   flutter_inappwebview:
     git:
-      url: https://github.com/Anxcye/flutter_inappwebview.git
+      url: git@github.com:Anxcye/flutter_inappwebview.git
       ref: 4a275c3
       path: flutter_inappwebview
   shelf: ^1.4.1
@@ -48,7 +48,7 @@ dependencies:
   flutter_file_dialog: ^3.0.2
   contentsize_tabbarview:
     git:
-      url: https://github.com/Anxcye/contentsize_tabbarview.git
+      url: git@github.com:Anxcye/contentsize_tabbarview.git
       ref: feat/animation
   wakelock_plus: ^1.2.5
   iconsx_plus: ^1.0.1
@@ -57,7 +57,7 @@ dependencies:
   battery_plus: ^6.2.1
   flutter_tts:
     git:
-      url: https://github.com/Anxcye/flutter_tts.git
+      url: git@github.com:Anxcye/flutter_tts.git
       ref: 88d20d282354d6d211f15f721b9c43796edd1b68
   sticky_headers: ^0.3.0+2
   photo_view: ^0.15.0
@@ -79,7 +79,7 @@ dependencies:
   json_annotation: ^4.9.0
   flutter_heatmap_calendar:
     git:
-      url: https://github.com/Anxcye/flutter_heatmap_calendar
+      url: git@github.com:Anxcye/flutter_heatmap_calendar
   csv: ^6.0.0
   fast_gbk: ^1.0.0
   window_manager: ^0.4.3
@@ -110,8 +110,9 @@ dependencies:
   langchain_google: ^0.7.1+2
   langchain_openai: 0.8.1+1
     # git:
-    #   url: https://github.com/Anxcye/langchain_dart.git
-  flutter_rust_bridge: ^2.13.0  # Rust 内核桥接，配 rust_core/ crate（见 rust_core/README.md）
+    #   url: git@github.com:Anxcye/langchain_dart.git
+  flutter_rust_bridge: ^2.12.0  # Rust 内核桥接，配 rust_core/ crate（见 rust_core/README.md）
+                                # flutter_rust_bridge_codegen CLI 是 Rust crate，cargo install flutter_rust_bridge_codegen
     #   ref: bb06c17ca667a906e3e37154b0bda95023d0c9bd
     #   path: packages/langchain_openai
   langchain_core: ^0.4.1
@@ -121,14 +122,14 @@ dependencies:
   # share_handler: ^0.0.25
   share_handler:
     git:
-      url: https://github.com/Anxcye/share_handler.git
+      url: git@github.com:Anxcye/share_handler.git
       path: share_handler
       ref: eeaa04d22e7e70babb55b6825b9ca7016e89c89a
   heroine: ^0.5.0+2
   vibration: ^3.1.4
   staggered_reorderable:
     git:
-      url: https://github.com/Anxcye/staggered_reorderable.git
+      url: git@github.com:Anxcye/staggered_reorderable.git
       ref: 2ac799a6eeb5da74bf5080a2ba2057272fa52b78
   haptic_feedback: ^0.6.4+2
   in_app_purchase_android: ^0.5.3
@@ -146,22 +147,22 @@ dependency_overrides:
     path: third_party/langchain_google
   langchain:
     git:
-      url: https://github.com/Anxcye/langchain_dart.git
+      url: git@github.com:Anxcye/langchain_dart.git
       ref: 310fb6b3
       path: packages/langchain
   langchain_core:
     git:
-      url: https://github.com/Anxcye/langchain_dart.git
+      url: git@github.com:Anxcye/langchain_dart.git
       ref: 310fb6b3
       path: packages/langchain_core
   langchain_openai:
     git:
-      url: https://github.com/Anxcye/langchain_dart.git
+      url: git@github.com:Anxcye/langchain_dart.git
       ref: 310fb6b3
       path: packages/langchain_openai
   langchain_anthropic:
     git:
-      url: https://github.com/Anxcye/langchain_dart.git
+      url: git@github.com:Anxcye/langchain_dart.git
       ref: 310fb6b3
       path: packages/langchain_anthropic
 #  analyzer: ^8.0.0
@@ -177,7 +178,8 @@ dev_dependencies:
   riverpod_lint: ^2.3.13
   freezed: ^3.0.2
   json_serializable: ^6.9.0
-  flutter_rust_bridge_codegen: ^2.13.0  # Rust ↔ Dart 桥接代码生成器
+  # flutter_rust_bridge_codegen CLI 是 Rust crate，不在 pub.dev
+  # 安装方式：cargo install flutter_rust_bridge_codegen
 #  flutter_launcher_icons: ^0.11.0
 
 

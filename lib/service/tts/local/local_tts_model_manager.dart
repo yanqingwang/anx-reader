@@ -40,7 +40,8 @@ bool isLocalTtsModelInstalledAt(String dirPath) {
 LocalTtsModelFiles? discoverLocalTtsModelFiles(String dirPath) {
   final dir = Directory(dirPath);
   if (!dir.existsSync()) return null;
-  return _scanRoot(dirPath) ?? _scanRoot(_singleNestedRoot(dirPath));
+  final single = _singleNestedRoot(dirPath);
+  return _scanRoot(dirPath) ?? (single != null ? _scanRoot(single) : null);
 }
 
 String? _singleNestedRoot(String dirPath) {
@@ -95,7 +96,7 @@ LocalTtsModelFiles? _scanRoot(String root) {
     lexicon: (lexicon?.isEmpty ?? true) ? null : lexicon,
     dataDir: dataDir,
     dictDir: dictDir,
-    ruleFsts: ruleFsts.isEmpty ? null : ruleFsts.join(','),
+    ruleFsts: ruleFsts,
   );
 }
 
@@ -249,6 +250,29 @@ Future<void> deleteLocalTtsModel(String modelId) async {
 }
 
 // ============ Riverpod state ============
+
+/// Files required by sherpa-onnx OfflineTtsVitsModelConfig.
+///
+/// Returned by [discoverLocalTtsModelFiles] after scanning a downloaded model
+/// directory. Optional fields (lexicon/dataDir/dictDir) are null when absent,
+/// which sherpa-onnx handles gracefully.
+class LocalTtsModelFiles {
+  final String modelOnnx;
+  final String tokensTxt;
+  final String? lexicon;
+  final String? dataDir;
+  final String? dictDir;
+  final List<String> ruleFsts;
+
+  const LocalTtsModelFiles({
+    required this.modelOnnx,
+    required this.tokensTxt,
+    this.lexicon,
+    this.dataDir,
+    this.dictDir,
+    this.ruleFsts = const [],
+  });
+}
 
 enum LocalTtsModelPhase { notInstalled, downloading, extracting, installed, failed }
 

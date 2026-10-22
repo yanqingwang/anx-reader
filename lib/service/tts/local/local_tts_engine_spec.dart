@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 /// Plain-data spec describing a local TTS model for the engine isolate.
 ///
 /// Kept free of any sherpa-onnx imports so the stub implementation (web/ohos)

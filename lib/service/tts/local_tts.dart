@@ -8,6 +8,7 @@ import 'package:anx_reader/service/tts/local/local_tts_engine.dart';
 import 'package:anx_reader/service/tts/local/local_tts_engine_spec.dart';
 import 'package:anx_reader/service/tts/local/local_tts_model_catalog.dart';
 import 'package:anx_reader/service/tts/local/local_tts_model_manager.dart';
+import 'package:anx_reader/service/tts/local_tts_provider.dart';
 import 'package:anx_reader/service/tts/local/wav_encoder.dart';
 import 'package:anx_reader/service/tts/models/tts_sentence.dart';
 import 'package:anx_reader/service/tts/models/tts_voice.dart';
@@ -175,7 +176,7 @@ class LocalTts extends BaseTts {
       lexiconPaths: files.lexicon,
       dataDirPath: files.dataDir,
       dictDirPath: files.dictDir,
-      ruleFsts: files.ruleFsts,
+      ruleFsts: files.ruleFsts.isEmpty ? null : files.ruleFsts.join(','),
       numThreads: 2,
     );
   }

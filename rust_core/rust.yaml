@@ -1,0 +1,13 @@
+# flutter_rust_bridge v2 配置文件
+# 运行：dart run flutter_rust_bridge_codegen generate rust_core/rust.yaml
+# 需要先在 Flutter 项目根目录有 flutter_rust_bridge 依赖
+
+rust:
+  crate_path: rust_core          # Rust crate 相对 Flutter 项目根的路径
+
+dart:
+  output: lib/rust/              # Dart 桥接代码输出目录
+  enable_generator: true         # 自动生成 CMake build 配置
+
+generator:
+  rust_input: rust_core/src/lib.rs  # Rust 入口文件（frb 宏标记的函数）

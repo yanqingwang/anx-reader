@@ -1,0 +1,40 @@
+[package]
+name = "anx_rust_core"
+version = "0.1.0"
+edition = "2021"
+description = "Rust 内核 for anx-reader: EPUB 解析 + 本地离线 TTS，通过 flutter_rust_bridge 暴露给 Flutter"
+
+# 本 crate 不发布到 crates.io，仅作为 Flutter 项目的 path 依赖
+publish = false
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+# EPUB 解析 —— 2026-10 crates.io 实际版本：roxmltree 0.21 / zip 9 / quick-xml 0.42
+zip = { version = "9", default-features = false, features = ["deflate"] }
+quick-xml = "0.42"
+roxmltree = "0.21"
+regex = "1"
+walkdir = "2"
+
+# 跨 FFI 的数据结构
+serde = { version = "1", features = ["derive"] }
+
+# flutter_rust_bridge v2 宏（Rust 侧）—— 2026-10 crates.io 最新稳定版是 2.13.0
+flutter_rust_bridge = "2.13.0"
+
+# 日志
+log = "0.4"
+
+# sherpa_onnx Rust 绑定（阶段 2 启用；若 crates.io 质量不够则改回手动 extern "C"）
+# sherpa-onnx-ffi = "…"
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+strip = true

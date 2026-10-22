@@ -70,3 +70,8 @@ google_service_account.json
 
 # FVM Version Cache
 .fvm/
+
+# Rust / flutter_rust_bridge 构建产物
+rust_core/target/
+rust_core/native/
+rust_core/Cargo.lock

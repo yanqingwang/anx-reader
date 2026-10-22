@@ -3,11 +3,13 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';
 import 'frb_generated.io.dart'
     if (dart.library.js_interop) 'frb_generated.web.dart';
+import 'models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 /// Main entrypoint of the Rust API
@@ -67,7 +69,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -291292710;
+  int get rustContentHash => 1822981875;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -78,7 +80,29 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   );
 }
 
-abstract class RustLibApi extends BaseApi {}
+abstract class RustLibApi extends BaseApi {
+  Future<EpubMetadata> crateApiEpubMetadata({required String path});
+
+  Future<bool> crateApiEpubOpen({required String path});
+
+  Future<List<SearchHit>> crateApiEpubSearch(
+      {required String path, required String query});
+
+  Future<List<String>> crateApiEpubSectionParagraphs(
+      {required String path, required String sectionHref});
+
+  Future<List<SpineItem>> crateApiEpubSpine({required String path});
+
+  Future<void> crateApiTtsEngineFree({required BigInt handle});
+
+  Future<BigInt> crateApiTtsEngineInit({required TtsModelSpec spec});
+
+  Future<WavData> crateApiTtsGenerate(
+      {required BigInt handle,
+      required String text,
+      required int speakerId,
+      required double speed});
+}
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RustLibApiImpl({
@@ -88,10 +112,382 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required super.portManager,
   });
 
+  @override
+  Future<EpubMetadata> crateApiEpubMetadata({required String path}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(path, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 1, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_epub_metadata,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiEpubMetadataConstMeta,
+      argValues: [path],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiEpubMetadataConstMeta => const TaskConstMeta(
+        debugName: "epub_metadata",
+        argNames: ["path"],
+      );
+
+  @override
+  Future<bool> crateApiEpubOpen({required String path}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(path, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 2, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiEpubOpenConstMeta,
+      argValues: [path],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiEpubOpenConstMeta => const TaskConstMeta(
+        debugName: "epub_open",
+        argNames: ["path"],
+      );
+
+  @override
+  Future<List<SearchHit>> crateApiEpubSearch(
+      {required String path, required String query}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(path, serializer);
+        sse_encode_String(query, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 3, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_search_hit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiEpubSearchConstMeta,
+      argValues: [path, query],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiEpubSearchConstMeta => const TaskConstMeta(
+        debugName: "epub_search",
+        argNames: ["path", "query"],
+      );
+
+  @override
+  Future<List<String>> crateApiEpubSectionParagraphs(
+      {required String path, required String sectionHref}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(path, serializer);
+        sse_encode_String(sectionHref, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 4, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_String,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiEpubSectionParagraphsConstMeta,
+      argValues: [path, sectionHref],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiEpubSectionParagraphsConstMeta =>
+      const TaskConstMeta(
+        debugName: "epub_section_paragraphs",
+        argNames: ["path", "sectionHref"],
+      );
+
+  @override
+  Future<List<SpineItem>> crateApiEpubSpine({required String path}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(path, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 5, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_spine_item,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiEpubSpineConstMeta,
+      argValues: [path],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiEpubSpineConstMeta => const TaskConstMeta(
+        debugName: "epub_spine",
+        argNames: ["path"],
+      );
+
+  @override
+  Future<void> crateApiTtsEngineFree({required BigInt handle}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_64(handle, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 6, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiTtsEngineFreeConstMeta,
+      argValues: [handle],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiTtsEngineFreeConstMeta => const TaskConstMeta(
+        debugName: "tts_engine_free",
+        argNames: ["handle"],
+      );
+
+  @override
+  Future<BigInt> crateApiTtsEngineInit({required TtsModelSpec spec}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_box_autoadd_tts_model_spec(spec, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 7, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_u_64,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiTtsEngineInitConstMeta,
+      argValues: [spec],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiTtsEngineInitConstMeta => const TaskConstMeta(
+        debugName: "tts_engine_init",
+        argNames: ["spec"],
+      );
+
+  @override
+  Future<WavData> crateApiTtsGenerate(
+      {required BigInt handle,
+      required String text,
+      required int speakerId,
+      required double speed}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_64(handle, serializer);
+        sse_encode_String(text, serializer);
+        sse_encode_u_32(speakerId, serializer);
+        sse_encode_f_32(speed, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 8, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_wav_data,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiTtsGenerateConstMeta,
+      argValues: [handle, text, speakerId, speed],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiTtsGenerateConstMeta => const TaskConstMeta(
+        debugName: "tts_generate",
+        argNames: ["handle", "text", "speakerId", "speed"],
+      );
+
   @protected
-  int sse_decode_i_32(SseDeserializer deserializer) {
+  String dco_decode_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as String;
+  }
+
+  @protected
+  bool dco_decode_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
+  }
+
+  @protected
+  TtsModelSpec dco_decode_box_autoadd_tts_model_spec(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_tts_model_spec(raw);
+  }
+
+  @protected
+  EpubMetadata dco_decode_epub_metadata(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return EpubMetadata(
+      title: dco_decode_String(arr[0]),
+      author: dco_decode_String(arr[1]),
+      description: dco_decode_String(arr[2]),
+      language: dco_decode_String(arr[3]),
+      coverPath: dco_decode_opt_String(arr[4]),
+      opfPath: dco_decode_String(arr[5]),
+    );
+  }
+
+  @protected
+  double dco_decode_f_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as double;
+  }
+
+  @protected
+  int dco_decode_i_16(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  List<String> dco_decode_list_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_String).toList();
+  }
+
+  @protected
+  Int16List dco_decode_list_prim_i_16_strict(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as Int16List;
+  }
+
+  @protected
+  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as Uint8List;
+  }
+
+  @protected
+  List<SearchHit> dco_decode_list_search_hit(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_search_hit).toList();
+  }
+
+  @protected
+  List<SpineItem> dco_decode_list_spine_item(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_spine_item).toList();
+  }
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_String(raw);
+  }
+
+  @protected
+  SearchHit dco_decode_search_hit(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return SearchHit(
+      sectionHref: dco_decode_String(arr[0]),
+      offset: dco_decode_usize(arr[1]),
+      snippet: dco_decode_String(arr[2]),
+    );
+  }
+
+  @protected
+  SpineItem dco_decode_spine_item(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return SpineItem(
+      idref: dco_decode_String(arr[0]),
+      href: dco_decode_String(arr[1]),
+      linear: dco_decode_bool(arr[2]),
+    );
+  }
+
+  @protected
+  TtsModelSpec dco_decode_tts_model_spec(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return TtsModelSpec(
+      modelDir: dco_decode_String(arr[0]),
+      dictDir: dco_decode_opt_String(arr[1]),
+      tokensPath: dco_decode_String(arr[2]),
+      lexiconPath: dco_decode_opt_String(arr[3]),
+      dataDir: dco_decode_opt_String(arr[4]),
+      numThreads: dco_decode_u_32(arr[5]),
+    );
+  }
+
+  @protected
+  int dco_decode_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeU64(raw);
+  }
+
+  @protected
+  int dco_decode_u_8(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  void dco_decode_unit(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return;
+  }
+
+  @protected
+  BigInt dco_decode_usize(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeU64(raw);
+  }
+
+  @protected
+  WavData dco_decode_wav_data(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return WavData(
+      sampleRate: dco_decode_u_32(arr[0]),
+      pcmI16Le: dco_decode_list_prim_i_16_strict(arr[1]),
+      durationMs: dco_decode_u_32(arr[2]),
+    );
+  }
+
+  @protected
+  String sse_decode_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getInt32();
+    var inner = sse_decode_list_prim_u_8_strict(deserializer);
+    return utf8.decoder.convert(inner);
   }
 
   @protected
@@ -101,14 +497,351 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_i_32(int self, SseSerializer serializer) {
+  TtsModelSpec sse_decode_box_autoadd_tts_model_spec(
+      SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putInt32(self);
+    return (sse_decode_tts_model_spec(deserializer));
+  }
+
+  @protected
+  EpubMetadata sse_decode_epub_metadata(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_title = sse_decode_String(deserializer);
+    var var_author = sse_decode_String(deserializer);
+    var var_description = sse_decode_String(deserializer);
+    var var_language = sse_decode_String(deserializer);
+    var var_coverPath = sse_decode_opt_String(deserializer);
+    var var_opfPath = sse_decode_String(deserializer);
+    return EpubMetadata(
+        title: var_title,
+        author: var_author,
+        description: var_description,
+        language: var_language,
+        coverPath: var_coverPath,
+        opfPath: var_opfPath);
+  }
+
+  @protected
+  double sse_decode_f_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getFloat32();
+  }
+
+  @protected
+  int sse_decode_i_16(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getInt16();
+  }
+
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <String>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_String(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  Int16List sse_decode_list_prim_i_16_strict(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getInt16List(len_);
+  }
+
+  @protected
+  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getUint8List(len_);
+  }
+
+  @protected
+  List<SearchHit> sse_decode_list_search_hit(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <SearchHit>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_search_hit(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<SpineItem> sse_decode_list_spine_item(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <SpineItem>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_spine_item(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_String(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  SearchHit sse_decode_search_hit(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_sectionHref = sse_decode_String(deserializer);
+    var var_offset = sse_decode_usize(deserializer);
+    var var_snippet = sse_decode_String(deserializer);
+    return SearchHit(
+        sectionHref: var_sectionHref, offset: var_offset, snippet: var_snippet);
+  }
+
+  @protected
+  SpineItem sse_decode_spine_item(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_idref = sse_decode_String(deserializer);
+    var var_href = sse_decode_String(deserializer);
+    var var_linear = sse_decode_bool(deserializer);
+    return SpineItem(idref: var_idref, href: var_href, linear: var_linear);
+  }
+
+  @protected
+  TtsModelSpec sse_decode_tts_model_spec(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_modelDir = sse_decode_String(deserializer);
+    var var_dictDir = sse_decode_opt_String(deserializer);
+    var var_tokensPath = sse_decode_String(deserializer);
+    var var_lexiconPath = sse_decode_opt_String(deserializer);
+    var var_dataDir = sse_decode_opt_String(deserializer);
+    var var_numThreads = sse_decode_u_32(deserializer);
+    return TtsModelSpec(
+        modelDir: var_modelDir,
+        dictDir: var_dictDir,
+        tokensPath: var_tokensPath,
+        lexiconPath: var_lexiconPath,
+        dataDir: var_dataDir,
+        numThreads: var_numThreads);
+  }
+
+  @protected
+  int sse_decode_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint32();
+  }
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getBigUint64();
+  }
+
+  @protected
+  int sse_decode_u_8(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8();
+  }
+
+  @protected
+  void sse_decode_unit(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  BigInt sse_decode_usize(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getBigUint64();
+  }
+
+  @protected
+  WavData sse_decode_wav_data(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_sampleRate = sse_decode_u_32(deserializer);
+    var var_pcmI16Le = sse_decode_list_prim_i_16_strict(deserializer);
+    var var_durationMs = sse_decode_u_32(deserializer);
+    return WavData(
+        sampleRate: var_sampleRate,
+        pcmI16Le: var_pcmI16Le,
+        durationMs: var_durationMs);
+  }
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getInt32();
+  }
+
+  @protected
+  void sse_encode_String(String self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
   }
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self ? 1 : 0);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_tts_model_spec(
+      TtsModelSpec self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_tts_model_spec(self, serializer);
+  }
+
+  @protected
+  void sse_encode_epub_metadata(EpubMetadata self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.author, serializer);
+    sse_encode_String(self.description, serializer);
+    sse_encode_String(self.language, serializer);
+    sse_encode_opt_String(self.coverPath, serializer);
+    sse_encode_String(self.opfPath, serializer);
+  }
+
+  @protected
+  void sse_encode_f_32(double self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putFloat32(self);
+  }
+
+  @protected
+  void sse_encode_i_16(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putInt16(self);
+  }
+
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_String(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_prim_i_16_strict(
+      Int16List self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putInt16List(self);
+  }
+
+  @protected
+  void sse_encode_list_prim_u_8_strict(
+      Uint8List self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putUint8List(self);
+  }
+
+  @protected
+  void sse_encode_list_search_hit(
+      List<SearchHit> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_search_hit(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_spine_item(
+      List<SpineItem> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_spine_item(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_String(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_search_hit(SearchHit self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.sectionHref, serializer);
+    sse_encode_usize(self.offset, serializer);
+    sse_encode_String(self.snippet, serializer);
+  }
+
+  @protected
+  void sse_encode_spine_item(SpineItem self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.idref, serializer);
+    sse_encode_String(self.href, serializer);
+    sse_encode_bool(self.linear, serializer);
+  }
+
+  @protected
+  void sse_encode_tts_model_spec(TtsModelSpec self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.modelDir, serializer);
+    sse_encode_opt_String(self.dictDir, serializer);
+    sse_encode_String(self.tokensPath, serializer);
+    sse_encode_opt_String(self.lexiconPath, serializer);
+    sse_encode_opt_String(self.dataDir, serializer);
+    sse_encode_u_32(self.numThreads, serializer);
+  }
+
+  @protected
+  void sse_encode_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint32(self);
+  }
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putBigUint64(self);
+  }
+
+  @protected
+  void sse_encode_u_8(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self);
+  }
+
+  @protected
+  void sse_encode_unit(void self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  void sse_encode_usize(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putBigUint64(self);
+  }
+
+  @protected
+  void sse_encode_wav_data(WavData self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self.sampleRate, serializer);
+    sse_encode_list_prim_i_16_strict(self.pcmI16Le, serializer);
+    sse_encode_u_32(self.durationMs, serializer);
+  }
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putInt32(self);
   }
 }

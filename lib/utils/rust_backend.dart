@@ -4,14 +4,6 @@
 ///
 /// 生产默认走 Dart 原实现（archive + html 解析），用户可在设置里开启 Rust backend。
 /// 鸿蒙 / Web 平台自动降级（sherpa_onnx pub 包 + frb 均无鸿蒙原生库）。
-///
-/// 接入 flutter_rust_bridge 的步骤（需 Flutter SDK）：
-///   1. flutter pub get
-///   2. dart run flutter_rust_bridge_codegen generate rust_core/rust.yaml
-///   3. 取消下面 _RustEpubMetadata 里的 stub throw，接 anx_rust_core.epubMetadata()
-///   4. 加 Prefs().useRustBackend 开关（默认 false）
-///   5. 在 epub_metadata.dart 的公共入口处把调用换成本工厂
-///   6. flutter analyze && flutter test
 
 import 'dart:io' as io;
 
@@ -19,6 +11,9 @@ import 'package:anx_reader/utils/book_metadata/epub_metadata.dart'
     as dart_impl;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import 'package:anx_reader/rust/api.dart' as rust_api;
+import 'package:anx_reader/rust/frb_generated.dart';
+import 'package:anx_reader/rust/models.dart' as rust_models;
 import 'package:anx_reader/utils/platform_utils.dart';
 
 /// EPUB 元数据服务工厂。
@@ -33,10 +28,8 @@ class EpubMetadataService {
     if (useRust && _isRustSupported) {
       try {
         return await _RustEpubMetadata.open(path);
-      } on UnsupportedError {
-        // frb 还没接或平台不支持，自动回退
-        return _DartEpubMetadata.open(path);
       } catch (_) {
+        // frb 未初始化、动态库缺失、解析异常 —— 自动回退 Dart
         return _DartEpubMetadata.open(path);
       }
     }
@@ -91,6 +84,27 @@ class EpubMetadataResult {
       spine: const [], // dart 实现没暴露 spine，Rust 有
     );
   }
+
+  factory EpubMetadataResult.fromRust({
+    required rust_models.EpubMetadata meta,
+    required List<rust_models.SpineItem> spine,
+  }) {
+    return EpubMetadataResult(
+      title: meta.title,
+      author: meta.author,
+      description: meta.description,
+      language: meta.language,
+      coverDataUri: null,
+      coverPath: meta.coverPath,
+      spine: spine
+          .map((s) => SpineItemResult(
+                idref: s.idref,
+                href: s.href,
+                linear: s.linear,
+              ))
+          .toList(),
+    );
+  }
 }
 
 class SpineItemResult {
@@ -120,23 +134,23 @@ class _DartEpubMetadata {
   }
 }
 
-/// Rust backend —— 当前是 stub（需 frb codegen）。
-///
-/// 有 Flutter SDK 的机器上跑：
-///   dart run flutter_rust_bridge_codegen generate rust_core/rust.yaml
-/// 之后会生成 anx_rust_core.dart，提供：
-///   Future<EpubMetadata> epubMetadata(String path)
-///   Future<List<SpineItem>> epubSpine(String path)
-/// 那时把下面 throw 替换为真实调用。
+/// Rust backend —— 通过 flutter_rust_bridge 调用 anx_rust_core。
 class _RustEpubMetadata {
   static Future<EpubMetadataResult> open(String path) async {
-    // TODO: frb codegen 后接真实调用
-    // final meta = await anx_rust_core.epubMetadata(path);
-    // final spine = await anx_rust_core.epubSpine(path);
-    throw UnsupportedError(
-      'Rust EPUB backend not yet wired. '
-      'Run `dart run flutter_rust_bridge_codegen generate rust_core/rust.yaml` '
-      'in a machine with Flutter SDK, then wire into rust_backend.dart.',
-    );
+    await _ensureRustInit();
+    final meta = await rust_api.epubMetadata(path: path);
+    final spine = await rust_api.epubSpine(path: path);
+    return EpubMetadataResult.fromRust(meta: meta, spine: spine);
+  }
+
+  static Future<void>? _initFuture;
+  static bool _initialized = false;
+
+  /// 确保 RustLib 只初始化一次。
+  static Future<void> _ensureRustInit() async {
+    if (_initialized) return;
+    _initFuture ??= RustLib.init();
+    await _initFuture;
+    _initialized = true;
   }
 }

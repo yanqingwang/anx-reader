@@ -8,7 +8,7 @@ description = "Rust 内核 for anx-reader: EPUB 解析 + 本地离线 TTS，通�
 publish = false
 
 [lib]
-crate-type = ["lib"]
+crate-type = ["lib", "cdylib"]
 
 [dependencies]
 # EPUB 解析 —— 2026-10 crates.io 实际版本：roxmltree 0.21 / zip 9 / quick-xml 0.42

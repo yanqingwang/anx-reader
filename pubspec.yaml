@@ -111,7 +111,7 @@ dependencies:
   langchain_openai: 0.8.1+1
     # git:
     #   url: git@github.com:Anxcye/langchain_dart.git
-  flutter_rust_bridge: ^2.12.0  # Rust 内核桥接，配 rust_core/ crate（见 rust_core/README.md）
+  flutter_rust_bridge: ^2.13.0  # Rust 内核桥接，配 rust_core/ crate（见 rust_core/README.md）
                                 # flutter_rust_bridge_codegen CLI 是 Rust crate，cargo install flutter_rust_bridge_codegen
     #   ref: bb06c17ca667a906e3e37154b0bda95023d0c9bd
     #   path: packages/langchain_openai

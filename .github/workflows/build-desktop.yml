@@ -21,6 +21,7 @@ on:
           - macos-x64
           - windows-x64
           - linux-x86_64
+          - linux-aarch64-experimental
 
 permissions:
   contents: read
@@ -323,3 +324,86 @@ jobs:
         with:
           name: anx-reader-linux-x86_64
           path: anx-reader-*-linux-x86_64.tar.gz
+
+  # Linux aarch64（ARM 服务器/树莓派等）— experimental：Flutter aarch64 Linux desktop 仍在完善中
+  # 如果 flutter build linux --target-platform linux-arm64 在未来某个版本失败，降级为仅产出 Rust .so。
+  build-linux-aarch64:
+    if: github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'linux-aarch64-experimental'
+    name: Linux aarch64 (experimental)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+
+      - name: Install QEMU for aarch64 Rust build
+        run: |
+          sudo apt-get install -y -qq qemu-user-static binfmt-support
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes || true
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.2
+          cache: true
+
+      - name: Set up Rust + cross crate
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+      - run: cargo install cross --version 0.2.5
+
+      - name: Flutter deps + codegen + frb bindings
+        run: |
+          flutter config --enable-linux-desktop
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+          flutter_rust_bridge_codegen generate \
+            --rust-input crate::api \
+            --rust-root rust_core \
+            --rust-output rust_core/src/frb_generated.rs \
+            --dart-output lib/rust \
+            --c-output rust_core/native/frb_generated.h
+
+      # Rust 侧用 cross（docker + qemu）交叉编译到 aarch64
+      - name: Build Rust native library (aarch64) via cross
+        run: cross build --release --manifest-path rust_core/Cargo.toml --target aarch64-unknown-linux-gnu
+
+      # Flutter 侧尝试交叉构建 aarch64；失败时降级为打包 Rust .so
+      - name: Try flutter build linux aarch64 (best-effort)
+        id: flutter_build
+        continue-on-error: true
+        run: flutter build linux --release --target-platform linux-arm64
+
+      - name: Collect Rust .so
+        run: |
+          mkdir -p build/linux-aarch64/rust_core/target/release
+          cp rust_core/target/aarch64-unknown-linux-gnu/release/libanx_rust_core.so \
+             build/linux-aarch64/rust_core/target/release/
+          cp rust_core/target/aarch64-unknown-linux-gnu/release/libanx_rust_core.so \
+             build/linux-aarch64/
+
+      - name: Package (Flutter build succeeded)
+        if: steps.flutter_build.outcome == 'success'
+        run: |
+          BUNDLE=build/linux-arm64/release/bundle
+          cp build/linux-aarch64/rust_core/target/release/libanx_rust_core.so "$BUNDLE/"
+          cp -r build/linux-aarch64/rust_core "$BUNDLE/"
+          VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d+ -f1)
+          cd "$BUNDLE" && tar czf "../../../anx-reader-${VERSION}-linux-aarch64.tar.gz" . && cd ../../..
+
+      - name: Package (Rust-only fallback)
+        if: steps.flutter_build.outcome != 'success'
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d+ -f1)
+          cd build/linux-aarch64 && tar czf "../anx-reader-${VERSION}-linux-aarch64-rustonly.tar.gz" . && cd ../..
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: anx-reader-linux-aarch64
+          path: anx-reader-*-linux-aarch64*.tar.gz

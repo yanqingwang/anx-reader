@@ -19,7 +19,7 @@ import 'package:anx_reader/utils/book_metadata/epub_metadata.dart'
     as dart_impl;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-import 'platform.dart';
+import 'package:anx_reader/utils/platform_utils.dart';
 
 /// EPUB 元数据服务工厂。
 ///
